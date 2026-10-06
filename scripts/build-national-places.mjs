@@ -202,23 +202,37 @@ const IKEA=[
 
 async function collect(){
   const results=[];
+  const coverage={loaded:[],missing:[],errors:[]};
   const enabled=id=>sources.find(x=>x.id===id)?.enabled!==false;
-  if(enabled('urban-parks'))results.push(...(await fetchAll(sources.find(x=>x.id==='urban-parks').endpoint)).map(normPark).filter(Boolean));
-  if(enabled('traditional-markets'))results.push(...(await fetchAll(sources.find(x=>x.id==='traditional-markets').endpoint)).map(normMarket).filter(Boolean));
-  if(enabled('libraries'))results.push(...(await fetchAll(sources.find(x=>x.id==='libraries').endpoint)).map(normLibrary).filter(Boolean));
-  if(enabled('specialized-streets'))results.push(...(await fetchAll(sources.find(x=>x.id==='specialized-streets').endpoint)).map(normStreet).filter(Boolean));
-  if(enabled('mountains'))results.push(...(await fetchAll(sources.find(x=>x.id==='mountains').endpoint,{numOfRows:500})).map(normMountain).filter(Boolean));
-  if(enabled('forest-trails'))results.push(...(await fetchAll(sources.find(x=>x.id==='forest-trails').endpoint,{numOfRows:500})).map(normTrail).filter(Boolean));
-  if(enabled('beaches')){
-    const sido=['부산','인천','울산','강원','충남','전북','전남','경북','경남','제주'];
-    for(const x of sido){
-      try{results.push(...(await fetchAll(sources.find(y=>y.id==='beaches').endpoint,{numOfRows:200,extra:{SIDO_NM:x}})).map(normBeach).filter(Boolean))}catch(e){console.warn('beach',x,e.message)}
+  async function run(id,fn){
+    try{
+      const before=results.length;
+      await fn();
+      coverage.loaded.push({id,count:results.length-before});
+    }catch(e){
+      coverage.errors.push({id,error:e?.message||String(e)});
+      console.warn('[SOURCE ERROR]',id,e?.message||e);
     }
   }
-  if(LOCALDATA_LARGE_STORES)results.push(...(await readCsv(LOCALDATA_LARGE_STORES)).map(normLargeStore).filter(Boolean));
-  if(LOCALDATA_TEMPLES)results.push(...(await readCsv(LOCALDATA_TEMPLES)).map(normTemple).filter(Boolean));
+  if(enabled('urban-parks'))await run('urban-parks',async()=>results.push(...(await fetchAll(sources.find(x=>x.id==='urban-parks').endpoint)).map(normPark).filter(Boolean)));
+  if(enabled('traditional-markets'))await run('traditional-markets',async()=>results.push(...(await fetchAll(sources.find(x=>x.id==='traditional-markets').endpoint)).map(normMarket).filter(Boolean)));
+  if(enabled('libraries'))await run('libraries',async()=>results.push(...(await fetchAll(sources.find(x=>x.id==='libraries').endpoint)).map(normLibrary).filter(Boolean)));
+  if(enabled('specialized-streets'))await run('specialized-streets',async()=>results.push(...(await fetchAll(sources.find(x=>x.id==='specialized-streets').endpoint)).map(normStreet).filter(Boolean)));
+  if(enabled('mountains'))await run('mountains',async()=>results.push(...(await fetchAll(sources.find(x=>x.id==='mountains').endpoint,{numOfRows:500})).map(normMountain).filter(Boolean)));
+  if(enabled('forest-trails'))await run('forest-trails',async()=>results.push(...(await fetchAll(sources.find(x=>x.id==='forest-trails').endpoint,{numOfRows:500})).map(normTrail).filter(Boolean)));
+  if(enabled('beaches'))await run('beaches',async()=>{
+    const sido=['부산','인천','울산','강원','충남','전북','전남','경북','경남','제주'];
+    for(const x of sido)results.push(...(await fetchAll(sources.find(y=>y.id==='beaches').endpoint,{numOfRows:200,extra:{SIDO_NM:x}})).map(normBeach).filter(Boolean));
+  });
+  if(LOCALDATA_LARGE_STORES)await run('large-stores',async()=>results.push(...(await readCsv(LOCALDATA_LARGE_STORES)).map(normLargeStore).filter(Boolean)));
+  else coverage.missing.push({id:'large-stores',reason:'LOCALDATA_LARGE_STORES 전국 CSV가 필요함'});
+  if(LOCALDATA_TEMPLES)await run('traditional-temples',async()=>results.push(...(await readCsv(LOCALDATA_TEMPLES)).map(normTemple).filter(Boolean)));
+  else coverage.missing.push({id:'traditional-temples',reason:'LOCALDATA_TEMPLES 전국 CSV가 필요함'});
+  coverage.missing.push({id:'tour-api',reason:'관광공사 활용신청 후 공원 보강·놀이공원·방문가능 사찰 검증 adapter 실행 필요'});
+  coverage.missing.push({id:'underground-shopping',reason:'전국 단일 표준셋 부재. 지자체 공식 지하도상가 파일 통합 필요'});
   results.push(...IKEA);
-  return results;
+  coverage.loaded.push({id:'ikea-official',count:IKEA.length});
+  return {results,coverage};
 }
 function dedupe(items){
   const map=new Map();
@@ -230,7 +244,7 @@ function dedupe(items){
   return [...map.values()];
 }
 function safePart(v){return s(v||'_unknown').replace(/[\\/:*?"<>|]/g,'_')}
-async function writeOutput(items){
+async function writeOutput(items,coverage){
   await fs.rm(OUT,{recursive:true,force:true});
   await fs.mkdir(OUT,{recursive:true});
   const byRegion=new Map();
@@ -247,7 +261,8 @@ async function writeOutput(items){
     shards.push({file,count:list.length,sido:list[0]?.sido||'',sigungu:list[0]?.sigungu||''});
   }
   const counts=Object.fromEntries([...new Set(items.map(x=>x.category))].sort().map(c=>[c,items.filter(x=>x.category===c).length]));
-  const manifest={version:1,status:'ready',generatedAt:new Date().toISOString(),total:items.length,counts,shards};
+  const incomplete=(coverage?.missing?.length||0)+(coverage?.errors?.length||0)>0;
+  const manifest={version:1,status:incomplete?'partial':'ready',generatedAt:new Date().toISOString(),total:items.length,counts,coverage,shards};
   await fs.writeFile(path.join(OUT,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
   return manifest;
 }
@@ -257,6 +272,7 @@ if(!SERVICE_KEY){
   process.exit(2);
 }
 
-const all=dedupe(await collect());
-const manifest=await writeOutput(all);
+const collected=await collect();
+const all=dedupe(collected.results);
+const manifest=await writeOutput(all,collected.coverage);
 console.log(JSON.stringify(manifest,null,2));

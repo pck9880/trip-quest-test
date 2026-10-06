@@ -1,0 +1,43 @@
+name: Build national place data
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check API key
+        env:
+          DATA_GO_KR_SERVICE_KEY: ${{ secrets.DATA_GO_KR_SERVICE_KEY }}
+        run: |
+          if [ -z "$DATA_GO_KR_SERVICE_KEY" ]; then
+            echo "::error::DATA_GO_KR_SERVICE_KEY repository secret is required"
+            exit 1
+          fi
+
+      - name: Build nationwide official dataset
+        env:
+          DATA_GO_KR_SERVICE_KEY: ${{ secrets.DATA_GO_KR_SERVICE_KEY }}
+          TOUR_API_SERVICE_KEY: ${{ secrets.TOUR_API_SERVICE_KEY }}
+        run: npm run data:build
+
+      - name: Validate
+        run: npm test
+
+      - name: Commit generated dataset
+        run: |
+          git config user.name "trip-quest-data-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add site-src/data/national
+          if git diff --cached --quiet; then
+            echo "No dataset changes"
+            exit 0
+          fi
+          git commit -m "data: refresh nationwide official places"
+          git push
