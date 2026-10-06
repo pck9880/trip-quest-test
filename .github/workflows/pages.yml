@@ -1,100 +1,22 @@
-# staging deployment trigger
-name: Deploy TRIP QUEST to Pages
+name: Validate TRIP QUEST TEST
 on:
   push:
     branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: '30 22 * * *'
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Build static site
+      - name: Syntax check
         run: |
-          rm -rf _site
-          mkdir -p _site/icons
-          cp -a site-src/. _site/
-          node --check _site/app.js
-          node --check _site/app-chrome.js
-          find _site/js -name '*.js' -print0 | xargs -0 -n1 node --check
-          npm test
-          python3 - <<'PY'
-          import struct, zlib, json, re, urllib.request
-          from pathlib import Path
-          from datetime import datetime, timezone, timedelta
-
-          def chunk(kind, data):
-              return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xffffffff)
-
-          def make_png(path, width, height, rgb=(12, 17, 23)):
-              row = b"\x00" + bytes(rgb) * width
-              raw = row * height
-              png = b"\x89PNG\r\n\x1a\n"
-              png += chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0))
-              png += chunk(b"IDAT", zlib.compress(raw, 9))
-              png += chunk(b"IEND", b"")
-              Path(path).write_bytes(png)
-
-          make_png("_site/icons/icon-192.png", 192, 192)
-          make_png("_site/icons/icon-512.png", 512, 512)
-          make_png("_site/icons/maskable-512.png", 512, 512)
-          make_png("_site/icons/apple-touch-icon.png", 180, 180)
-
-          p = Path("_site/index.html")
-          html = p.read_text(encoding="utf-8")
-          tag = '<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">'
-          if 'name="robots"' not in html:
-              html = html.replace("<head>", "<head>\n  " + tag, 1)
-          p.write_text(html, encoding="utf-8")
-          Path("_site/robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
-          Path("_site/.nojekyll").touch()
-
-          # National-average fuel price. Opinet is refreshed daily; if parsing fails,
-          # keep a conservative current fallback instead of breaking trip calculations.
-          fuel = {"gasoline":1858,"diesel":1844,"lpg":1139,"updatedAt":"2026-10-01","source":"Opinet","status":"fallback"}
-          try:
-              req=urllib.request.Request('https://www.opinet.co.kr/user/dopospdrg/dopOsPdrgSelect.do',headers={'User-Agent':'Mozilla/5.0'})
-              text=urllib.request.urlopen(req,timeout=15).read().decode('utf-8','ignore')
-              plain=re.sub(r'<[^>]+>',' ',text)
-              nums=[float(x.replace(',','')) for x in re.findall(r'(?<!\d)(1[0-9]{3}(?:\.[0-9]{1,2})?)(?!\d)',plain)]
-              # sanity-filter current Korean pump-price ranges; first plausible gasoline/diesel values are used only if available.
-              plausible=[x for x in nums if 1400<=x<=2600]
-              if len(plausible)>=2:
-                  # Opinet page includes premium gasoline before regular; choose values nearest current regular/diesel bands.
-                  g=min(plausible,key=lambda x:abs(x-1858))
-                  d=min([x for x in plausible if x!=g] or plausible,key=lambda x:abs(x-1844))
-                  fuel.update(gasoline=round(g,2),diesel=round(d,2),status='live')
-              fuel['updatedAt']=(datetime.now(timezone(timedelta(hours=9)))-timedelta(days=1)).strftime('%Y-%m-%d')
-          except Exception as e:
-              print('Opinet refresh fallback:',e)
-          Path('_site/fuel-prices.json').write_text(json.dumps(fuel,ensure_ascii=False),encoding='utf-8')
-
-          PY
-
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+          node --check site-src/auth.js
+          node --check site-src/app.js
+          node --check site-src/app-chrome.js
+          find site-src/js -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: Test staging build
+        run: npm test
