@@ -16,8 +16,8 @@ assert.match(planner,/endTime/);
 assert.match(search,/selectedNearbyIds/);
 assert.match(search,/최적 코스/);
 assert.match(national,/DecompressionStream/);
-assert.match(national,/TRIP QUEST 공식 DB/);
-assert.equal(manifest.total,20413);
-assert.equal(manifest.parts.length,16);
+assert.match(national,/TRIP QUEST 공식 DB/);\nassert.equal(manifest.status,'ready');
+assert.equal(manifest.total,20365);
+assert.equal(manifest.parts.length,8);
 
 console.log('TRIP QUEST selected-course and national DB checks passed');
