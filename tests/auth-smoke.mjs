@@ -30,7 +30,7 @@ assert.doesNotMatch(index,/type="module" src="\.\/app\.js/);
 
 assert.match(css,/\.tq-auth-remember/);
 assert.match(css,/body\.tq-auth-locked/);
-assert.match(sw,/trip-quest-test-v1\.1\.2-overpass-resilience-20261006/);
+assert.match(sw,/trip-quest-test-v1\.1\.2-official-runtime-v2-20261006/);
 assert.match(sw,/!html\.includes\('auth\.js'\)/);
 
 console.log('TRIP QUEST TEST separated login/signup checks passed');
