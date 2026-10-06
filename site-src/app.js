@@ -1,6 +1,4 @@
 import { $, all, setText, loading, toast, esc } from './js/core/dom.js';
-import { categoryLabels } from './js/data/ui-options.js';
-import { initTimes, updateSchedulePreview } from './js/ui/time-controls.js';
 import { showMainLanding, hideMainLanding } from './js/ui/landing.js';
 import { createWizardUI } from './js/ui/wizard.js';
 import { createSearchController } from './js/controllers/search-controller.js';
@@ -10,6 +8,7 @@ import { initMap } from './js/ui/main-map.js';
 import { createTripStore } from './js/store/trip-store.js';
 import { createTravelService } from './js/services/travel-service.js';
 import { initKeepPanel } from './js/ui/keep-panel.js';
+import { createQuestSelector } from './js/ui/quest-selector.js';
 const store=createTripStore();
 const state=store.state;
 const travelService=createTravelService();
@@ -21,7 +20,8 @@ const travelService=createTravelService();
 
 
 const wizardUI=createWizardUI(state);
-const {setStep,syncDistanceUI,setDistanceBoundary,syncCategoriesUI,syncDirectionUI,validateUIRuntime,bindChoices}=wizardUI;
+const {setStep,syncDistanceUI,setDistanceBoundary,syncCategoriesUI,syncFacilitiesUI,syncDirectionUI,validateUIRuntime,bindChoices}=wizardUI;
+const questSelector=createQuestSelector({state,setStep,syncCategoriesUI,syncFacilitiesUI});
 const searchController=createSearchController({state,travelService,setStep});
 const {sortRecommendations,currentPayload,recommend,selectPlace,renderRanking,presentRecommendations,openKeptCourse}=searchController;
 const originController=createOriginController({state,travelService,setStep,recommend});
@@ -88,19 +88,10 @@ async function loadConfig(){
 
 
 function resetTrip(){
-  document.body.classList.remove('tq-advanced-open');
-  const manualBar=$('#openAdvancedSearch');
-  if(manualBar){manualBar.setAttribute('aria-expanded','false');manualBar.classList.remove('open')}
-  store.resetJourney();
-  syncDistanceUI();
-  all('#directionChoices button').forEach(b=>b.classList.toggle('selected',b.dataset.value==='전체'));
-  syncCategoriesUI();
-  $('#ranking').innerHTML='조건을 설정한 뒤 추천지를 찾아보세요.';
+  store.resetJourney();questSelector.reset();
+  $('#ranking').innerHTML='지역과 플레이스를 선택하면 결과가 표시됩니다.';
   $('#ranking').className='ranking empty-state';
-  initTimes();
-  setStep(1);
-  showMainLanding();
-  toast('새 여행을 시작합니다.');
+  setStep(1);showMainLanding();toast('새 TRIP QUEST를 시작합니다.');
 }
 function startAIProgressGauge(){
   const wrap=$('#aiProgress'),fill=$('#aiProgressFill'),label=$('#aiProgressText'),eta=$('#aiEta');
@@ -122,21 +113,7 @@ function startAIProgressGauge(){
     setTimeout(()=>{wrap.hidden=true;wrap.classList.remove('done','error');fill.style.width='0%'},1700);
   };
 }
-function applyPatch(patch={}){
-  let distanceChanged=false;
-  if(Number.isFinite(Number(patch.minKm))){state.minKm=Math.max(0,Math.min(400,Number(patch.minKm)));distanceChanged=true}
-  if(Number.isFinite(Number(patch.targetKm))){state.targetKm=Math.max(0,Math.min(400,Number(patch.targetKm)));distanceChanged=true}
-  if(distanceChanged&&state.minKm>state.targetKm)[state.minKm,state.targetKm]=[state.targetKm,state.minKm];
-  if(typeof patch.direction==='string'&&patch.direction)state.direction=patch.direction;
-  if(Array.isArray(patch.categories))state.categories=[...new Set(patch.categories.filter(Boolean))];
-  const depart=$('#departTime'),returnTime=$('#returnTime');
-  if(typeof patch.departure==='string'&&depart)depart.value=patch.departure;
-  if(typeof patch.returnTime==='string'&&returnTime)returnTime.value=patch.returnTime;
-  if(distanceChanged)syncDistanceUI();
-  if(Object.hasOwn(patch,'direction'))syncDirectionUI();
-  if(Object.hasOwn(patch,'categories'))syncCategoriesUI();
-  if((patch.departure||patch.returnTime)&&depart&&returnTime)updateSchedulePreview();
-}
+function applyPatch(){return}
 
 function showAI(result){
   $('#aiConversation').hidden=false;
@@ -266,7 +243,7 @@ function currentAISearchMessage(){
 
 
 function bindActions(){
-  bindAppActions({state,startFromMainLocation,hideMainLanding,setStep,sortRecommendations,useLocation,searchOrigin,updateSchedulePreview,resetTrip,recommend,searchSimilarDistance,askAI,currentAISearchMessage});
+  bindAppActions({state,hideMainLanding,setStep,sortRecommendations,resetTrip,recommend});
 }
 
 function showSafeRuntimeError(){
@@ -287,5 +264,5 @@ if(typeof window!=='undefined'){
     if(state.step===4)showSafeRuntimeError();
   });
 }
-async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
+async function boot(){initMap();initKeepPanel({onOpenCourse:openKeptCourse});validateUIRuntime();bindChoices();questSelector.bind();bindActions();initPWA();syncCategoriesUI();syncFacilitiesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
 if(typeof document!=='undefined')boot();

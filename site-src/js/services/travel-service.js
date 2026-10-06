@@ -7,7 +7,7 @@ import { localRecommend } from '../domain/recommendation.js';
 import { refineRoadDistanceResults } from '../usecases/search-destinations.js';
 import { localAI } from '../domain/intent-parser.js';
 import { coursePack } from '../domain/course-planner.js';
-import { searchRegionPlaces } from './live-place-search.js';
+import { searchRegionPlaces, searchNearbyPlaces } from './live-place-search.js';
 
 export function createTravelService(){
   async function getConfig(){
@@ -30,6 +30,15 @@ export function createTravelService(){
       traffic:{label:'경로 선택 후 계산',avgSpeed:0,source:'정적 배포판'},
       updatedAt:new Date().toISOString()
     };
+  }
+
+  async function selectionSearch(criteria){
+    const result=await searchRegionPlaces({
+      boundary:criteria.regionBoundary,
+      categories:criteria.categories||[],
+      facilities:criteria.facilities||[]
+    });
+    return {items:result.items,source:result.source};
   }
 
   async function recommend(criteria){
@@ -81,10 +90,11 @@ export function createTravelService(){
   async function courses(body){
     const weatherPack=await clientWeather(body.destination.lat,body.destination.lng);
     const weather=selectWeatherAt(weatherPack,body.departure);
+    const nearby=await searchNearbyPlaces(body.destination,5000);
     return {
       weather,
-      courses:await coursePack(body,weather),
-      provider:{ai:false,road:'osrm-or-fallback',kakao:false}
+      courses:await coursePack({...body,nearby},weather),
+      provider:{ai:false,places:'OpenStreetMap/Overpass',road:'osrm-or-fallback'}
     };
   }
 
@@ -124,5 +134,5 @@ export function createTravelService(){
     return result;
   }
 
-  return {getConfig,geocode,bootstrap,recommend,tripSummary,courses,aiSearch};
+  return {getConfig,geocode,bootstrap,selectionSearch,recommend,tripSummary,courses,aiSearch};
 }
