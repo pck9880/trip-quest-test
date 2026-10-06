@@ -10,13 +10,16 @@ const selectorCss=fs.readFileSync('site-src/selector.css','utf8');
 const selector=fs.readFileSync('site-src/js/ui/quest-selector.js','utf8');
 const searchController=fs.readFileSync('site-src/js/controllers/search-controller.js','utf8');
 
-for(const id of ['regionLevel1','regionLevel2','regionLevel3','placeChoices','facilityChoices','selectionSummary','regionLoadBar','regionLoadPercent','regionContinueBtn','rangeExpandModal','rangeExpandConfirm'])assert.ok(html.includes('id="'+id+'"'),id+' missing');
+for(const id of ['regionLevel1','regionLevel2','regionLevel3','placeChoices','facilityChoices','selectionSummary','regionLoadBar','regionLoadPercent','regionContinueBtn','placeLoadStatus','placeLoadBar','placeLoadPercent','rangeExpandModal','rangeExpandConfirm'])assert.ok(html.includes('id="'+id+'"'),id+' missing');
 assert.doesNotMatch(html,/id="aiInput"|id="aiSend"|distanceMinRange|directionChoices/);
 assert.match(store,/regionBoundary/);
 assert.match(store,/regionBoundaries/);
 assert.match(store,/facilities/);
 assert.match(live,/regionChildren/);
 assert.match(live,/admin_level/);
+assert.match(live,/adminLevel===6\?\[6,7\]/);
+assert.match(live,/adminLevel===8\?\[8,9\]/);
+assert.match(live,/administrative\|legal/);
 assert.match(live,/OpenStreetMap/);
 assert.match(live,/shop"="department_store/);
 assert.match(live,/place_of_worship/);
@@ -29,6 +32,8 @@ assert.match(selectorCss,/pixel-loader-frame/);
 assert.match(selectorCss,/repeating-linear-gradient\(90deg,#c9ff45 0 7px/);
 assert.match(selectorCss,/range-expand-modal/);
 assert.match(searchController,/offerExpandedSearch/);
+assert.match(searchController,/startPlaceLoad/);
+assert.match(searchController,/finishPlaceLoad/);
 assert.match(searchController,/범위를 넓혀서 찾아볼까요/);
 assert.match(selectorCss,/body\[data-trip-step="2"\] \.wizard\{display:block!important\}/);
 
