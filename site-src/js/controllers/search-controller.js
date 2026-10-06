@@ -40,16 +40,18 @@ export function createSearchController({state,travelService,setStep}){
     });
   }
 
-  const expandConfirm=$('#rangeExpandConfirm');
-  if(expandConfirm)expandConfirm.onclick=async()=>{
-    const req=pendingExpand;
-    hideExpandModal();
-    if(req)await recommend(req);
-  };
-  const expandCancel=$('#rangeExpandCancel');
-  if(expandCancel)expandCancel.onclick=()=>{hideExpandModal();setStep(1)};
-  const expandModal=$('#rangeExpandModal');
-  if(expandModal)expandModal.addEventListener('click',e=>{if(e.target===expandModal)hideExpandModal()});
+  if(typeof document!=='undefined'){
+    const expandConfirm=$('#rangeExpandConfirm');
+    if(expandConfirm)expandConfirm.onclick=async()=>{
+      const req=pendingExpand;
+      hideExpandModal();
+      if(req)await recommend(req);
+    };
+    const expandCancel=$('#rangeExpandCancel');
+    if(expandCancel)expandCancel.onclick=()=>{hideExpandModal();setStep(1)};
+    const expandModal=$('#rangeExpandModal');
+    if(expandModal)expandModal.addEventListener('click',e=>{if(e.target===expandModal)hideExpandModal()});
+  }
   function sortRecommendations(mode=state.resultSort,rerender=true){
     state.resultSort=mode||'recommend';
     const cmp=state.resultSort==='name'
