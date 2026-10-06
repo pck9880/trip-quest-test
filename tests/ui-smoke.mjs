@@ -9,6 +9,7 @@ const html=read('index.html');
 const sw=read('sw.js');
 const app=read('app.js');
 const chromeJs=read('app-chrome.js');
+const authJs=read('auth.js');
 const baseCss=read('css/base.css');
 const productCss=read('css/product.css');
 const landingCss=read('css/landing.css');
@@ -52,8 +53,9 @@ function q(file,name){
   return m?.[1]||'';
 }
 for(const asset of ['css/base.css','css/product.css','css/landing.css','css/search.css','app.js','app-chrome.js']){
-  const hv=q(html,asset),sv=q(sw,asset);
-  assert.ok(hv,'missing versioned HTML ref: '+asset);
+  const source=(asset==='app.js'||asset==='app-chrome.js')?authJs:html;
+  const hv=q(source,asset),sv=q(sw,asset);
+  assert.ok(hv,'missing versioned runtime ref: '+asset);
   assert.equal(sv,hv,'service worker version mismatch: '+asset);
 }
 
