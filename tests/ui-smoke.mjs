@@ -143,8 +143,8 @@ assert.ok(originControllerSource.includes('OpenStreetMap / Nominatim'),'geocoder
 assert.ok(originControllerSource.includes('Open-Meteo'),'weather attribution required');
 assert.ok(resultsSource.includes('OSRM 도로 경로'),'routing provider disclosure required');
 
-assert.ok(html.includes('TRIP QUEST · v1.1.2'),'v1.0.0 footer/version marker missing');
-assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.1.2'"),'chrome footer version missing');
+assert.ok(html.includes('TRIP QUEST TEST · v1.1.2-auth-staging'),'staging footer/version marker missing');
+assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST TEST · v1.1.2-auth-staging'"),'staging chrome footer version missing');
 
 const keepServiceSource=read('js/services/keep-service.js');
 const keepPanelSource=read('js/ui/keep-panel.js');
