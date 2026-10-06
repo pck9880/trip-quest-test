@@ -57,7 +57,12 @@ export function localRecommend(body){
   if(focus){
     const tokens=focus.split(/\s+/).filter(Boolean);
     const direct=arr.filter(p=>tokens.some(t=>p.name.toLowerCase().includes(t)));
-    if(direct.length){const centers=direct;arr=arr.filter(p=>centers.some(c=>geoKm(c,p)<=40)||direct.includes(p))}
+    if(body.exactRegion){
+      arr=arr.filter(p=>recommendationRegion(p.name).toLowerCase()===focus||direct.includes(p));
+    }else if(direct.length){
+      const centers=direct;
+      arr=arr.filter(p=>centers.some(c=>geoKm(c,p)<=40)||direct.includes(p));
+    }
   }else{
     // 실제 도로거리는 직선거리보다 길어질 수 있으므로 최소값은 여유 있게 55%부터 후보화하고,
     // 최대값은 직선거리상 넘을 수 없는 장소만 먼저 제거한다.

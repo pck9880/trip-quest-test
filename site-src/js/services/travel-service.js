@@ -7,11 +7,12 @@ import { localRecommend } from '../domain/recommendation.js';
 import { refineRoadDistanceResults } from '../usecases/search-destinations.js';
 import { localAI } from '../domain/intent-parser.js';
 import { coursePack } from '../domain/course-planner.js';
+import { searchRegionPlaces } from './live-place-search.js';
 
 export function createTravelService(){
   async function getConfig(){
     return {
-      providers:{kakao:false,tmap:false,openai:false,weather:true},
+      providers:{kakao:false,tmap:false,openai:false,livePlaces:true,weather:true},
       defaultGasPrice:1858,
       fuelEconomyKmL:11,
       publicBaseUrl:''
@@ -94,9 +95,31 @@ export function createTravelService(){
         ...context,
         ...result.patch,
         focusQuery:result.focusQuery,
+        exactRegion:!!result.exactRegion,
         semanticProfile:result.semanticProfile
       };
-      result.items=await refineRoadDistanceResults(localRecommend(merged),merged);
+      if(result.exactRegion&&result.focusQuery){
+        try{
+          const live=await searchRegionPlaces({
+            region:result.focusQuery,
+            primaryPlaceType:result.primaryPlaceType||'',
+            categories:merged.categories||[]
+          });
+          result.items=await refineRoadDistanceResults(live.items,merged);
+          result.mode='live_region';
+          result.provider={ai:false,places:live.source,region:result.focusQuery};
+          result.message=`${result.focusQuery} 행정구역 내부의 실시간 장소를 검색했습니다. 다른 도시로 자동 확장하지 않습니다.`;
+        }catch(e){
+          result.items=await refineRoadDistanceResults(localRecommend(merged),merged);
+          result.mode='local_region_fallback';
+          result.provider={ai:false,places:'내장 데이터',region:result.focusQuery,error:e.message};
+          result.message=`${result.focusQuery} 지역 실시간 검색에 실패해 내장 데이터에서 같은 지역만 검색했습니다.`;
+        }
+      }else{
+        result.items=await refineRoadDistanceResults(localRecommend(merged),merged);
+        result.mode='local_rules';
+        result.provider={ai:false,places:'내장 데이터'};
+      }
     }
     return result;
   }

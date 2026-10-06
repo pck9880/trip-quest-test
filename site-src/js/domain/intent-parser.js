@@ -25,9 +25,17 @@ export function localAI(message,context){
   if(/전통시장/.test(m))explicitDestination.push('전통시장');
   for(const c of explicitDestination)if(!hardCategories.includes(c))hardCategories.push(c);
 
-  const destinationCats=hardCategories.length?hardCategories:preferredCategories;
+  const cafeExcluded=/카페.*(빼|제외)|카페는.*(빼|제외)/.test(m);
+  const cafeAmenityOnly=/근처.{0,8}카페|주변.{0,8}카페|카페도|카페.{0,8}(들러|경유)/.test(m);
+  const foodAmenityOnly=/근처.{0,8}(맛집|식당)|주변.{0,8}(맛집|식당)|(맛집|식당)도/.test(m);
+  let primaryPlaceType='';
+  if(!cafeExcluded&&/카페|커피숍|로스터리|베이커리/.test(m)&&!cafeAmenityOnly)primaryPlaceType='카페';
+  else if(/맛집|식당|음식점|브런치/.test(m)&&!foodAmenityOnly)primaryPlaceType='맛집';
+  else if(/소품샵|기념품|편집샵|셀렉트샵/.test(m))primaryPlaceType='소품샵';
+
+  const destinationCats=primaryPlaceType?[primaryPlaceType]:(hardCategories.length?hardCategories:preferredCategories);
   if(destinationCats.length)patch.categories=destinationCats;
-  if(/카페.*(빼|제외)|카페는.*(빼|제외)/.test(m))patch.categories=(patch.categories||context.categories||[]).filter(x=>x!=='카페');
+  if(cafeExcluded)patch.categories=(patch.categories||context.categories||[]).filter(x=>x!=='카페');
 
   const regions=['서울','부산','대구','인천','광주','대전','울산','진주','사천','통영','거제','남해','여수','순천','하동','합천','산청','함양','거창','창원','김해','경주','전주','담양','공주','보령','군산','강릉','속초','춘천','안동','포항','제주','제천'];
   for(const r of regions)if(m.includes(r)){focus=r;break}
@@ -54,14 +62,14 @@ export function localAI(message,context){
   const appIntent=/TRIP\s*QUEST|트립\s*퀘스트|설정|사용법|버튼|연비|휘발유|거리\s*바꿔|카테고리/i;
 
   if(/사용법|어떻게\s*써|기능\s*설명/.test(m))return {mode:'local',intent:'help',message:'출발지 → 취향 → 시간 → 추천 → 코스 순서로 진행합니다. 기분, 상황, 원하는 거리를 한 문장에 같이 적어도 분석합니다.',patch,focusQuery:focus,analysisKeywords:['사용법'],choices:[{label:'조건 직접 설정하기',action:'goto',step:2},{label:'다시 입력하기',action:'focus'}]};
-  if(!matches.length&&!travel.test(compact)&&!appIntent.test(m))return {mode:'local',intent:'clarify',message:'여행 조건으로 이해할 정보가 조금 부족합니다. 기분, 현재 상황, 원하는 거리 중 한 가지만 더 적어주세요.',patch:{},focusQuery:'',analysisKeywords:[],choices:[{label:'AI 입력으로 돌아가기',action:'focus'},{label:'직접 조건 선택하기',action:'goto',step:2}]};
+  if(!matches.length&&!travel.test(compact)&&!appIntent.test(m)&&!focus)return {mode:'local',intent:'clarify',message:'여행 조건으로 이해할 정보가 조금 부족합니다. 기분, 현재 상황, 원하는 거리 중 한 가지만 더 적어주세요.',patch:{},focusQuery:'',analysisKeywords:[],choices:[{label:'AI 입력으로 돌아가기',action:'focus'},{label:'직접 조건 선택하기',action:'goto',step:2}]};
 
   const settings=/바꿔|변경|설정|빼|제외/.test(m)&&Object.keys(patch).length;
   const keywords=[...profile.keywords];
   keywords.push(`${sliderRange.min}~${sliderRange.max}km`);
   if(!keywords.length)keywords.push('국내여행');
   const msg=settings?'요청한 여행 조건을 반영했습니다.':`기분·상황·거리에서 ${keywords.join(' · ')} 조건을 분석했습니다. 장소 유형과 직접 관련 없는 카페·날씨 조건은 추천지를 왜곡하지 않고 코스 조건으로 따로 반영합니다.`;
-  return {mode:'local',intent:settings?'settings':'travel_search',message:msg,patch,focusQuery:focus,
-    semanticProfile:profile,analysisKeywords:keywords,
+  return {mode:'local_rules',intent:settings?'settings':'travel_search',message:msg,patch,focusQuery:focus,
+    exactRegion:!!focus,primaryPlaceType,semanticProfile:profile,analysisKeywords:keywords,
     choices:settings?[{label:'이 조건으로 검색',action:'search',patch,focusQuery:focus},{label:'조건 직접 확인',action:'goto',step:2}]:[{label:'조건 직접 수정',action:'goto',step:2},{label:'다른 조건 말하기',action:'focus'}]}
 }

@@ -114,13 +114,13 @@
       <section id="sharedTripBanner" class="shared-trip panel" hidden><div><span>공유 받은 여행</span><strong id="sharedTripTitle">—</strong><small id="sharedTripMeta">—</small></div><button id="sharedTripUseBtn" class="btn primary small">내 위치로 다시 계산</button></section>
       <section class="ai-hero panel tq-search-page" aria-labelledby="aiTitle">
         <div class="ai-copy tq-search-head">
-          <div class="eyebrow">TRIP QUEST AI</div>
+          <div class="eyebrow">TRIP QUEST SEARCH</div>
           <h1 id="aiTitle">오늘 어디로 떠날까요?</h1>
           <p>현재 위치에서 취향에 맞는 여행지를 빠르게 찾아드려요.</p>
         </div>
 
         <div class="ai-composer tq-search-composer">
-          <label class="sr-only" for="aiInput">AI에게 여행 요청</label>
+          <label class="sr-only" for="aiInput">여행 검색 요청</label>
           <textarea id="aiInput" rows="2" placeholder="예: 조용한 바다, 힙한 동네, 분위기 좋은 카페"></textarea>
           <button id="aiSend" class="btn primary ai-send" type="button">여행지 찾기</button>
         </div>
@@ -141,8 +141,8 @@
         </div>
 
         <div id="aiSearchStatus" class="ai-search-status" role="status" aria-live="polite" hidden></div>
-        <div id="aiProgress" class="ai-progress" hidden><div class="ai-progress-top"><span>AI 추천 검색</span><b id="aiProgressText">0%</b></div><div class="ai-progress-track"><i id="aiProgressFill"></i></div><small id="aiEta">예상 1~3초</small></div>
-        <div id="aiConversation" class="ai-conversation" hidden><div class="ai-answer-row"><span class="ai-avatar">AI</span><div><div class="ai-mode" id="aiMode">여행 전용 AI</div><p id="aiReply"></p><div id="aiAnalysisTags" class="ai-analysis-tags" hidden></div><div id="aiChoices" class="ai-choices"></div></div></div></div>
+        <div id="aiProgress" class="ai-progress" hidden><div class="ai-progress-top"><span>실시간 추천 검색</span><b id="aiProgressText">0%</b></div><div class="ai-progress-track"><i id="aiProgressFill"></i></div><small id="aiEta">예상 1~3초</small></div>
+        <div id="aiConversation" class="ai-conversation" hidden><div class="ai-answer-row"><span class="ai-avatar">AI</span><div><div class="ai-mode" id="aiMode">지역 실시간 검색</div><p id="aiReply"></p><div id="aiAnalysisTags" class="ai-analysis-tags" hidden></div><div id="aiChoices" class="ai-choices"></div></div></div></div>
 
         <button id="openAdvancedSearch" class="tq-manual-input-bar" type="button" aria-expanded="false" aria-controls="progress">
           <span><b>직접 입력</b><small>방향 · 취향 · 시간 조건을 직접 설정</small></span>
