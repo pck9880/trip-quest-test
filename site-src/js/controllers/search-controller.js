@@ -1,5 +1,4 @@
 import { $, all, setText, loading, toast, esc } from '../core/dom.js';
-import { placePopularity } from '../domain/recommendation.js';
 import { drawMap, drawRoute } from '../ui/main-map.js';
 import { createResultsUI } from '../ui/results.js';
 import { keepService } from '../services/keep-service.js';
@@ -8,11 +7,11 @@ export function createSearchController({state,travelService,setStep}){
   const results=createResultsUI(state);
   function sortRecommendations(mode=state.resultSort,rerender=true){
     state.resultSort=mode||'recommend';
-    const cmp=state.resultSort==='far'
-      ?(a,b)=>b.distanceKm-a.distanceKm
-      :state.resultSort==='near'
-        ?(a,b)=>a.distanceKm-b.distanceKm
-        :(a,b)=>((placePopularity(b)*.55)+(b.score||0)*.45)-((placePopularity(a)*.55)+(a.score||0)*.45);
+    const cmp=state.resultSort==='name'
+      ?(a,b)=>a.name.localeCompare(b.name,'ko')
+      :state.resultSort==='category'
+        ?(a,b)=>(a.category||'').localeCompare(b.category||'','ko')||((b.score||0)-(a.score||0))
+        :(a,b)=>(b.score||0)-(a.score||0);
     state.recommendations.sort(cmp);
     all('.result-sort button').forEach(b=>b.classList.toggle('active',b.dataset.sort===state.resultSort));
     if(rerender){results.renderRanking();drawMap(state.origin,state.recommendations)}
