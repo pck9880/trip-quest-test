@@ -11,7 +11,8 @@ for(const id of ['regionLevel1','regionLevel2','regionLevel3','placeChoices','fa
 assert.doesNotMatch(html,/id="aiInput"|id="aiSend"|distanceMinRange|directionChoices/);
 assert.match(store,/regionBoundary/);
 assert.match(store,/facilities/);
-assert.match(live,/admin_level"="+adminLevel/);
+assert.match(live,/regionChildren/);
+assert.match(live,/admin_level/);
 assert.match(live,/OpenStreetMap/);
 assert.match(live,/shop"="department_store/);
 assert.match(live,/place_of_worship/);
