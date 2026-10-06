@@ -9,8 +9,11 @@ assert.match(live,/maps\.mail\.ru/);
 assert.match(live,/OVERPASS_ENDPOINTS/);
 assert.match(live,/AbortController/);
 assert.match(live,/for\(const endpoint of OVERPASS_ENDPOINTS\)/);
-assert.match(live,/Partial Overpass category failures/);
+assert.match(live,/Promise\.allSettled\(tasks\)/);
+assert.match(live,/visitorWorthy/);
 assert.match(live,/route"~"\^\(hiking\|walking\)\$/);
 assert.doesNotMatch(live,/highway"="path/);
+assert.doesNotMatch(live,/\["historic"\]/);
+assert.doesNotMatch(live,/\["craft"\]/);
 
 console.log('TRIP QUEST Overpass resilience checks passed');
