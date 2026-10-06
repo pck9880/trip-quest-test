@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-06",
+  "policy": {
+    "primary": "대한민국 정부·공공기관 공식 데이터",
+    "osmRole": "좌표 보정 및 공식 데이터 누락 확인용 보조",
+    "removedCategories": [
+      "맛집",
+      "숙박",
+      "온천·스파",
+      "캠핑"
+    ],
+    "largeLibraryRule": "연면적 3000㎡ 이상 또는 좌석 300석 이상 또는 장서 100000권 이상",
+    "templeRule": "영업/운영상태가 정상인 전통사찰 중 관광공사·지자체·사찰 공식 안내로 일반 방문 가능 여부가 확인된 곳만",
+    "trailRule": "공식 숲길/등산로 데이터에 고유 명칭과 구간 식별자가 있는 곳만",
+    "cafeStreetRule": "지자체 특화거리 또는 공식 관광정보에서 현재 카페거리로 명시된 곳만",
+    "beachRule": "공식 해수욕장 정보에 등록된 곳만",
+    "mountainRule": "산림청 산행용 산정보 대상만"
+  },
+  "sources": [
+    {
+      "id": "urban-parks",
+      "category": "공원",
+      "authority": "국토교통부·지방자치단체",
+      "dataset": "전국도시공원정보표준데이터",
+      "catalog": "https://www.data.go.kr/data/15012890/standard.do",
+      "endpoint": "https://api.data.go.kr/openapi/tn_pubr_public_cty_park_info_api",
+      "adapter": "standard-json",
+      "auth": "DATA_GO_KR_SERVICE_KEY",
+      "enabled": true
+    },
+    {
+      "id": "traditional-markets",
+      "category": "전통시장",
+      "authority": "지방자치단체",
+      "dataset": "전국전통시장표준데이터",
+      "catalog": "https://www.data.go.kr/data/15012894/standard.do",
+      "endpoint": "https://api.data.go.kr/openapi/tn_pubr_public_trdit_mrkt_api",
+      "adapter": "standard-json",
+      "auth": "DATA_GO_KR_SERVICE_KEY",
+      "enabled": true
+    },
+    {
+      "id": "libraries",
+      "category": "대형도서관",
+      "authority": "지방자치단체",
+      "dataset": "전국도서관표준데이터",
+      "catalog": "https://www.data.go.kr/data/15013109/standard.do",
+      "endpoint": "https://api.data.go.kr/openapi/tn_pubr_public_lbrry_api",
+      "adapter": "standard-json",
+      "auth": "DATA_GO_KR_SERVICE_KEY",
+      "enabled": true
+    },
+    {
+      "id": "specialized-streets",
+      "category": "카페거리|쇼핑거리",
+      "authority": "지방자치단체",
+      "dataset": "전국지역특화거리표준데이터",
+      "catalog": "https://www.data.go.kr/data/15017322/standard.do",
+      "endpoint": "https://api.data.go.kr/openapi/tn_pubr_public_area_spcliz_stret_api",
+      "adapter": "standard-json",
+      "auth": "DATA_GO_KR_SERVICE_KEY",
+      "enabled": true
+    },
+    {
+      "id": "mountains",
+      "category": "산",
+      "authority": "산림청",
+      "dataset": "전국산정보표준데이터/산정보 서비스",
+      "catalog": "https://www.data.go.kr/data/15029183/fileData.do",
+      "endpoint": "https://apis.data.go.kr/1400000/service/cultureInfoService2/mntInfoOpenAPI2",
+      "adapter": "forest-mountain",
+      "auth": "DATA_GO_KR_SERVICE_KEY",
+      "enabled": true
+    },
+    {
+      "id": "forest-trails",
+      "category": "산책로",
+      "authority": "산림청·한국등산트레킹지원센터",
+      "dataset": "산림청 숲길/등산로·숲길 POI",
+      "catalog": "https://www.data.go.kr/data/15125108/openapi.do",
+      "endpoint": "https://apis.data.go.kr/1400000/service/cultureInfoService2/frtrlSectnOpenAPI2",
+      "adapter": "forest-trail",
+      "auth": "DATA_GO_KR_SERVICE_KEY",
+      "enabled": true
+    },
+    {
+      "id": "beaches",
+      "category": "해수욕장",
+      "authority": "해양수산부",
+      "dataset": "해수욕장 정보",
+      "catalog": "https://www.data.go.kr/data/15058519/openapi.do",
+      "endpoint": "https://apis.data.go.kr/1192000/service/OceansBeachInfoService1/getOceansBeachInfo1",
+      "adapter": "beach",
+      "auth": "DATA_GO_KR_SERVICE_KEY",
+      "enabled": true
+    },
+    {
+      "id": "large-stores",
+      "category": "대형마트|백화점",
+      "authority": "행정안전부·지방자치단체",
+      "dataset": "생활 대규모점포 조회서비스",
+      "catalog": "https://www.data.go.kr/data/15154948/openapi.do",
+      "endpoint": null,
+      "adapter": "localdata-large-store",
+      "auth": "DATA_GO_KR_SERVICE_KEY",
+      "enabled": true,
+      "note": "공공데이터포털 활용신청 후 제공되는 Swagger 요청주소 또는 전국 LOCALDATA 원본 CSV 사용"
+    },
+    {
+      "id": "traditional-temples",
+      "category": "사찰",
+      "authority": "행정안전부·문화체육관광부",
+      "dataset": "문화 전통사찰 조회서비스",
+      "catalog": "https://www.data.go.kr/data/15155235/openapi.do",
+      "endpoint": null,
+      "adapter": "localdata-temple",
+      "auth": "DATA_GO_KR_SERVICE_KEY",
+      "enabled": true,
+      "note": "전통사찰 정상영업 데이터만 1차 수집 후 일반방문 가능 여부를 별도 공식출처로 검증"
+    },
+    {
+      "id": "tour-api",
+      "category": "공원|사찰|문화시설|관광명소|박물관미술관|체험|대형복합시설",
+      "authority": "한국관광공사",
+      "dataset": "국문 관광정보 서비스 GW",
+      "catalog": "https://www.data.go.kr/data/15101578/openapi.do",
+      "endpoint": "https://apis.data.go.kr/B551011/KorService2/areaBasedSyncList2",
+      "adapter": "tour-api",
+      "auth": "TOUR_API_SERVICE_KEY",
+      "enabled": true
+    },
+    {
+      "id": "ikea-official",
+      "category": "대형복합시설",
+      "authority": "IKEA Korea",
+      "dataset": "IKEA 대한민국 공식 정규매장",
+      "catalog": "https://www.ikea.com/kr/ko/stores/",
+      "endpoint": null,
+      "adapter": "curated-official",
+      "auth": null,
+      "enabled": true,
+      "note": "정규 대형매장만 포함. 도심형·팝업은 제외"
+    }
+  ]
+}
