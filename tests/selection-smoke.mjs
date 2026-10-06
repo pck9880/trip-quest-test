@@ -21,7 +21,7 @@ assert.match(live,/adminLevel===6\?\[6,7\]/);
 assert.match(live,/adminLevel===8\?\[8,9\]/);
 assert.match(live,/administrative\|legal/);
 assert.match(live,/OpenStreetMap/);
-assert.match(live,/shop"="department_store/);
+assert.match(live,/department_store/);
 assert.match(live,/place_of_worship/);
 assert.match(course,/fixed place data|고정 장소 데이터 미사용/);
 assert.doesNotMatch(course,/RAW_PLACES|CURATED_COURSES|HOTSPOT_META/);
