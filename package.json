@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/keep-smoke.mjs && node tests/auth-smoke.mjs && node tests/module-smoke.mjs && node tests/national-data-smoke.mjs && node tests/national-data-completeness.mjs && node tests/national-runtime-unit.mjs && node tests/selection-smoke.mjs && node tests/course-builder-smoke.mjs && node tests/course-plan-unit.mjs && node tests/overpass-resilience.mjs && node tests/sale-readiness.mjs",
+    "test": "node tests/keep-smoke.mjs && node tests/auth-smoke.mjs && node tests/module-smoke.mjs && node tests/national-data-smoke.mjs && node tests/national-data-completeness.mjs && node tests/national-runtime-unit.mjs && node tests/selection-smoke.mjs && node tests/course-builder-smoke.mjs && node tests/course-plan-unit.mjs && node tests/overpass-resilience.mjs && node tests/search-quality-speed.mjs && node tests/sale-readiness.mjs",
     "verify:sale": "npm test",
     "data:build": "node scripts/build-national-places.mjs"
   }
