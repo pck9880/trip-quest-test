@@ -20,18 +20,27 @@ export function createTravelService(){
     return {providers:{officialNational:!!national,livePlaces:true,openai:false},defaultGasPrice:1858,fuelEconomyKmL:11,publicBaseUrl:'',national};
   }
   async function selectionSearch(criteria){
-    const official=await searchOfficialPlaces({regionPath:criteria.regionPath||[],categories:criteria.categories||[],facilities:criteria.facilities||[]});
     const officialSet=officialCategories();
-    const fallbackCats=(criteria.categories||[]).filter(x=>!officialSet.has(x));
+    let official={items:[]},officialReady=true;
+    try{
+      official=await searchOfficialPlaces({regionPath:criteria.regionPath||[],categories:criteria.categories||[],facilities:criteria.facilities||[]});
+    }catch(e){
+      officialReady=false;
+      console.warn('official national DB fallback',e?.message||e);
+    }
+    const fallbackCats=officialReady
+      ?(criteria.categories||[]).filter(x=>!officialSet.has(x))
+      :(criteria.categories||[]);
     let live={items:[]};
     if(fallbackCats.length)live=await searchRegionPlaces({boundary:criteria.regionBoundary,categories:fallbackCats,facilities:criteria.facilities||[]});
     const items=dedupePlaces([...(official.items||[]),...(live.items||[])]);
     items.sort((a,b)=>(b.score||0)-(a.score||0)||a.name.localeCompare(b.name,'ko'));
-    const source=official.items?.length&&live.items?.length?'TRIP QUEST 전국 DB + 지도 보조':official.items?.length?'TRIP QUEST 전국 공식 DB':'지도 보조 데이터';
+    const source=official.items?.length&&live.items?.length?'TRIP QUEST 전국 DB + 지도 보조':official.items?.length?'TRIP QUEST 전국 공식 DB':officialReady?'지도 보조 데이터':'공식 DB 준비 중 · 지도 보조';
     return {items,source};
   }
   async function nearbyCandidates({destination,radiusKm=5}){
-    const official=await nearbyOfficialPlaces(destination,radiusKm,70);
+    let official=[];
+    try{official=await nearbyOfficialPlaces(destination,radiusKm,70)}catch(e){console.warn('nearby official DB fallback',e?.message||e)}
     let live=[];
     if(official.length<24)live=await searchNearbyPlaces(destination,Math.round(radiusKm*1000));
     const items=dedupePlaces([...official,...live]).map(x=>({...x,distanceKm:Number(x.distanceKm)||geoKm(destination,x)}))
